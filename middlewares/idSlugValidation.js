@@ -1,11 +1,6 @@
 import { getSlugs } from "../src/utils/function.js";
 
 //lavoro con fake array di oggetti per le validazioni
-const productSlugs = [
-  { slug: 'smartphone-xyz' },
-  { slug: 'laptop-super-fast' },
-  { slug: 'cuffie-bluetooth-abc' }
-];
 
 const categoriesNames = [
     {name: 'Illuminazione'},
