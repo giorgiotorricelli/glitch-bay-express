@@ -1,5 +1,5 @@
 import { db } from "../config/db.js";
-import { queryCatIndex, queryCatShow } from "../src/utils/query";
+import { queryCatIndex, queryCatShow } from "../src/utils/query.js";
 
 
 
@@ -54,6 +54,8 @@ async function show(request, response) {
     }
 
 };
+
+export { index, show };
 
 /* export const getProducts = (req, res) => {
     const sql = `
