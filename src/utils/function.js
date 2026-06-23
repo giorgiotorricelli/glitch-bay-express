@@ -111,11 +111,11 @@ export function validatorValues(json) {
 
 export function generateTrackingNumber() {
     let randomNumbers = '';
-    
+
     for (let i = 0; i < 13; i++) {
         randomNumbers += Math.floor(Math.random() * 10);
     }
-    
+
     return `IT${randomNumbers}`;
 }
 
@@ -157,3 +157,111 @@ export async function getInvoice() {
     }
     return result;
 };
+
+
+export function formatInvoices(rawData) {
+    const invoicesMap = new Map();
+    rawData.forEach(row => {
+        const invoiceId = row.id;
+        if (!invoicesMap.has(invoiceId)) {
+            let formattedDate = '';
+            if (row.created_at) {
+                let formattedDate = '';
+                if (row.created_at) {
+                    if (row.created_at instanceof Date) {
+                        // Se è già un oggetto Date, estraiamo i componenti direttamente
+                        const day = String(row.created_at.getDate()).padStart(2, '0');
+                        const month = String(row.created_at.getMonth() + 1).padStart(2, '0'); // I mesi partono da 0
+                        const year = row.created_at.getFullYear();
+                        formattedDate = `${day}/${month}/${year}`;
+                    } else if (typeof row.created_at === 'string') {
+                        // Se è una stringa, usiamo lo split in sicurezza
+                        const datePart = row.created_at.split(' ')[0]; // Prende "2026-06-10"
+                        const parts = datePart.split('-');
+                        if (parts.length === 3) {
+                            const [year, month, day] = parts;
+                            formattedDate = `${day}/${month}/${year}`;
+                        } else {
+                            formattedDate = row.created_at; // Fallback se il formato stringa è strano
+                        }
+                    }
+                }
+            }
+            invoicesMap.set(invoiceId, {
+                id: parseInt(invoiceId, 10),
+                total_amount: parseFloat(row.total_amount) || 0,
+                status: row.status,
+                shipping_cost: parseFloat(row.shipping_cost) || 0,
+                created_at: formattedDate,
+                tracking_number: row.tracking_number,
+                payment_method: row.payment_method,
+                user: {
+                    name: row.name,
+                    surname: row.surname,
+                    mail: row.mail,
+                    address: row.address,
+                    phone: row.phone
+                },
+                products: []
+            });
+        }
+        let imgUrl = 'https://placehold.co/600x400/png';
+        if (row.img && row.img.trim() !== '') {
+            imgUrl = `http://localhost:3000/${row.img.trim()}`;
+        }
+        const productItem = {
+            name: row.product_name,
+            price: parseFloat(row.price) || 0,
+            img: imgUrl,
+            qty: parseInt(row.qty, 10) || 0,
+            paid: parseFloat(row.paid) || 0
+        };
+        invoicesMap.get(invoiceId).products.push(productItem);
+    });
+    return Array.from(invoicesMap.values());
+}
+
+
+
+
+
+export function getTop5Products(invoiceListFormatted) {
+    if (!invoiceListFormatted || !Array.isArray(invoiceListFormatted)) {
+        return [];
+    }
+    const orders = invoiceListFormatted;
+    const productSales = orders.reduce((acc, order) => {
+        if (Array.isArray(order.products)) {
+            order.products.forEach(product => {
+                const name = product.name;
+                const qty = parseInt(product.qty, 10) || 0;
+                const price = product.price;
+                const img = product.img;
+                const discountedPrice = parseFloat(product.paid) || 0; 
+                if (name) {
+                    if (!acc[name]) {
+                        acc[name] = {
+                            total_qty: 0,
+                            price: price,
+                            discounted_price: discountedPrice,
+                            img: img
+                        };
+                    }
+                    acc[name].total_qty += qty;
+                }
+            });
+        }
+        return acc;
+    }, {});
+    const sortedProducts = Object.entries(productSales)
+        .sort((a, b) => b[1].total_qty - a[1].total_qty)
+        // 4. Prendi i primi 5 prodotti
+        .slice(0, 5);
+    return sortedProducts.map(([name, details]) => ({
+        name: name,
+        total_qty: details.total_qty,
+        price: details.price,
+        discounted_price: details.discounted_price,
+        img: details.img
+    }));
+}

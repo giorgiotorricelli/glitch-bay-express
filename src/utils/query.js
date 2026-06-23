@@ -13,9 +13,29 @@ export const queryCatShow =
 
 export const queryInvoiceIndex =
     `
-    SELECT * 
-    FROM invoices 
-    ORDER BY invoices.created_at DESC;
+    SELECT
+            invoices.*,
+            users.name,
+            users.surname,
+            users.mail,
+            users.address,
+            users.phone,
+            products.name AS product_name,
+            products.price,
+            products.img,
+            product_invoice.qty,
+            product_invoice.paid
+
+        FROM invoices
+
+        JOIN users
+            ON users.id_invoice = invoices.id
+
+        JOIN product_invoice
+            ON product_invoice.id_invoice = invoices.id
+
+        JOIN products
+            ON products.id = product_invoice.id_product;
     `
 
 export const queryInvoiceShow =
@@ -83,7 +103,7 @@ export const queryProductsFive =
         ON pc.id_product = products.id
     JOIN categories
         ON categories.id = pc.id_category
-    WHERE products.discount = 0
+    ORDER BY products.created_at
     LIMIT 5;
     `
 
