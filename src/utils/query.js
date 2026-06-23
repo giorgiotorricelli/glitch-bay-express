@@ -21,6 +21,7 @@ export const queryInvoiceIndex =
             users.address,
             users.phone,
             products.name AS product_name,
+            products.slug,
             products.price,
             products.img,
             product_invoice.qty,

@@ -169,20 +169,18 @@ export function formatInvoices(rawData) {
                 let formattedDate = '';
                 if (row.created_at) {
                     if (row.created_at instanceof Date) {
-                        // Se è già un oggetto Date, estraiamo i componenti direttamente
                         const day = String(row.created_at.getDate()).padStart(2, '0');
-                        const month = String(row.created_at.getMonth() + 1).padStart(2, '0'); // I mesi partono da 0
+                        const month = String(row.created_at.getMonth() + 1).padStart(2, '0');
                         const year = row.created_at.getFullYear();
                         formattedDate = `${day}/${month}/${year}`;
                     } else if (typeof row.created_at === 'string') {
-                        // Se è una stringa, usiamo lo split in sicurezza
-                        const datePart = row.created_at.split(' ')[0]; // Prende "2026-06-10"
+                        const datePart = row.created_at.split(' ')[0]; 
                         const parts = datePart.split('-');
                         if (parts.length === 3) {
                             const [year, month, day] = parts;
                             formattedDate = `${day}/${month}/${year}`;
                         } else {
-                            formattedDate = row.created_at; // Fallback se il formato stringa è strano
+                            formattedDate = row.created_at; 
                         }
                     }
                 }
@@ -211,6 +209,7 @@ export function formatInvoices(rawData) {
         }
         const productItem = {
             name: row.product_name,
+            slug: row.slug,
             price: parseFloat(row.price) || 0,
             img: imgUrl,
             qty: parseInt(row.qty, 10) || 0,
@@ -234,6 +233,7 @@ export function getTop5Products(invoiceListFormatted) {
         if (Array.isArray(order.products)) {
             order.products.forEach(product => {
                 const name = product.name;
+                const slug = product.slug;
                 const qty = parseInt(product.qty, 10) || 0;
                 const price = product.price;
                 const img = product.img;
@@ -244,7 +244,8 @@ export function getTop5Products(invoiceListFormatted) {
                             total_qty: 0,
                             price: price,
                             discounted_price: discountedPrice,
-                            img: img
+                            img: img,
+                            slug: slug
                         };
                     }
                     acc[name].total_qty += qty;
@@ -259,6 +260,7 @@ export function getTop5Products(invoiceListFormatted) {
         .slice(0, 5);
     return sortedProducts.map(([name, details]) => ({
         name: name,
+        slug: details.slug,
         total_qty: details.total_qty,
         price: details.price,
         discounted_price: details.discounted_price,
