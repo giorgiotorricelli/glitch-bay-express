@@ -1,8 +1,8 @@
 import { db } from '../config/db.js';
 import { formatInvoices, generateTrackingNumber, getTop5Products } from '../src/utils/function.js';
-import { insertInvoice, queryInvoiceIndex, queryInvoiceShow, insertUser, insertOrder } from '../src/utils/query.js';
-
-
+import { insertInvoice, queryInvoiceIndex, queryInvoiceShow, insertUser, insertOrder, queryProductsByIds } from '../src/utils/query.js';
+import { mailSender } from '../src/utils/mailsender.js';
+import { getCyberpunkEmailBody } from '../src/utils/emailTemplate.js';
 
 
 /*
@@ -91,6 +91,26 @@ export async function store(request, response) {
             console.log(resultOrder)
         }
         await db.commit();
+
+        try {
+            const productIds = products.map(p => p.id);
+            const [dbProducts] = await db.query(queryProductsByIds, [productIds]);
+            const productDetailsMap = new Map(dbProducts.map(p => [p.id, p]));
+
+            const emailBody = getCyberpunkEmailBody({
+                firstName, lastName, address, phone, tracking_number, invoice_id,
+                products, productDetailsMap, shipping_cost, payment_methods, total_amount
+            });
+
+            const emailSubject = `⚡ [GLITCH BAY] CONFERMA ORDINE #${invoice_id}`;
+            
+
+            await mailSender(mail, emailSubject, emailBody);
+            console.log(`Email di conferma inviata con successo a: ${mail}`);
+
+        } catch (emailError) {
+            console.error("Mailing system log:", emailError);
+        }
 
         response
             .status(201)

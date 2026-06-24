@@ -185,3 +185,9 @@ export const categoryCheckQuery =
     FROM categories
     WHERE  id = ? 
     `
+
+    export const queryProductsByIds = `
+    SELECT id, name, price 
+    FROM products 
+    WHERE id IN (?);
+`;
