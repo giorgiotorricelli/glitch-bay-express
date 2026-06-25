@@ -10,7 +10,9 @@ INDEX
 */
 export async function index(request, response) {
     const category = request.category;
-    const { order, search } = request.query || {};
+    const { order, search, direction } = request.query || {};
+    
+
     
     const validatedSearch = stringCheck(search) ? search : null;
     const validatedOrderKey = orderKeyCheck(order) ? order : null; 
@@ -30,7 +32,7 @@ export async function index(request, response) {
     }
 
     if (validatedOrderKey) {
-        sql += ` ORDER BY products.${validatedOrderKey} DESC`; 
+        sql += ` ORDER BY products.${validatedOrderKey} ${direction ? direction : 'DESC'}`; 
     }
 
     try {
