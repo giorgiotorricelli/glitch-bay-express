@@ -11,8 +11,6 @@ INDEX
 export async function index(request, response) {
     const category = request.category;
     const { order, search, direction } = request.query || {};
-    console.log(direction);
-    console.log(order);
     
     
 
