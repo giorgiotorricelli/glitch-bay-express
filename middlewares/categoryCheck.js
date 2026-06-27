@@ -6,17 +6,13 @@ import { categoryCheckQuery } from "../src/utils/query.js";
 
 async function categoryCheck(request, response, next) {
     try {
-        const { category } = request.query;
-        console.log(category);
-        
+        const { category, filter } = request.query;
 
-
-        if (!category) {
+        if (!category || filter === 'discount') {
             request.category = null;
             return next();
         }
         const [result] = await db.execute(categoryCheckQuery,[category]);
-        console.log(result);
         
 
         if (result.length === 0) {
